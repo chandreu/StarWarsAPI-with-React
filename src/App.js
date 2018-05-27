@@ -13,24 +13,32 @@ class App extends React.Component {
     eyeColor: '',
     birthYear: '',
     gender: '',
-    homeworldUrl: '',
+    homeworld: '',
     filmsArr: [],
-    speciesArr: [],
+    species: '',
     vehiclesArr: [],
     starshipsArr: [],
     error: '',
   }
 
   getSwapi = async (e) => {
+    this.setState({
+      filmsArr: [],
+      vehiclesArr: [],
+      starshipsArr: [],
+    });
+
     e.preventDefault();
     const query = e.target.elements.query.value;
 
     const apiCall = await fetch(`https://swapi.co/api/people/?search=${query}`);
     const data = await apiCall.json();
 
-    /* const homeWorldCall = await fetch(data.results[0].homeworld);
-    const homeWorld = await homeWorldCall.json();
-    console.log(homeWorld.name); */
+    const speciesCall = await fetch(data.results[0].species);
+    const speciesData = await speciesCall.json();
+
+    const homeworldCall = await fetch(data.results[0].homeworld);
+    const homeworldData = await homeworldCall.json();
 
     if (data.count > 0) {
       this.setState({
@@ -42,15 +50,28 @@ class App extends React.Component {
         eyeColor: data.results[0].eye_color,
         birthYear: data.results[0].birth_year,
         gender: data.results[0].gender,
-        homeworldUrl: data.results[0].homeworld,
+        homeworld: homeworldData.name,
         filmsArr: data.results[0].films,
-        speciesArr: data.results[0].species,
+        species: speciesData.name,
         vehiclesArr: data.results[0].vehicles,
         starshipsArr: data.results[0].starships,
+        error: '',
       });
     } else {
       this.setState({
         name: '',
+        height: '',
+        weight: '',
+        hairColor: '',
+        skinColor: '',
+        eyeColor: '',
+        birthYear: '',
+        gender: '',
+        homeworld: '',
+        filmsArr: [],
+        species: '',
+        vehiclesArr: [],
+        starshipsArr: [],
         error: 'No such character found',
       });
     }
@@ -66,9 +87,9 @@ class App extends React.Component {
       weight,
       skinColor,
       gender,
-      homeworldUrl,
+      homeworld,
       filmsArr,
-      speciesArr,
+      species,
       vehiclesArr,
       starshipsArr,
       error,
@@ -94,9 +115,9 @@ class App extends React.Component {
                     eyeColor={eyeColor}
                     birthYear={birthYear}
                     gender={gender}
-                    homeworldUrl={homeworldUrl}
+                    homeworld={homeworld}
                     filmsArr={filmsArr}
-                    speciesArr={speciesArr}
+                    species={species}
                     vehiclesArr={vehiclesArr}
                     starshipsArr={starshipsArr}
                     error={error}

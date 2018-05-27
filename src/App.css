@@ -112,9 +112,9 @@ button:active {
   font-weight: 400;
 }
 
-.character-details__key:last-child {
+/*.character-details__key:last-child {
   border: 0;
-}
+}*/
 
 .character-details__value {
   color: #fff;

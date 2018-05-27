@@ -1,6 +1,12 @@
 module.exports = {
     "parser": "babel-eslint",
     "extends": "airbnb",
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "ecmaFeatures": {
+          "experimentalObjectRestSpread": true
+        }
+      },
     "rules": {
         "react/jsx-filename-extension": 0,
         "no-use-before-define":0,
