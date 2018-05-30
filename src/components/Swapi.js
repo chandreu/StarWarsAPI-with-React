@@ -1,43 +1,6 @@
 import React from 'react';
 
 class Swapi extends React.Component {
-  state = {
-    films: '',
-    vehicles: '',
-    starships: '',
-  }
-  componentWillReceiveProps() {
-    this.setState({
-      films: '',
-      vehicles: '',
-      starships: '',
-    });
-  }
-
-  getArrayUrls = async (urls) => {
-    try {
-      const data = await Promise.all(urls.map(url =>
-        fetch(url).then(response => response.json())));
-      return (data);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async renderArrProps(arrayLink, prop) {
-    const responses = await this.getArrayUrls(arrayLink);
-    let titles = '';
-
-    for (let i = 0; i < responses.length; i += 1) {
-      if (prop === 'films') titles += `${responses[i].title}`;
-      else titles += `${responses[i].name}`;
-      if (i < responses.length - 1) titles += ', ';
-    }
-    if (prop === 'films') this.setState({ films: titles });
-    if (prop === 'vehicles') this.setState({ vehicles: titles });
-    if (prop === 'starships') this.setState({ starships: titles });
-  }
-
   renderDetails() {
     const {
       name,
@@ -50,23 +13,13 @@ class Swapi extends React.Component {
       gender,
       homeworld,
       species,
-      filmsArr,
-      vehiclesArr,
-      starshipsArr,
-      error,
-    } = this.props;
-
-    const {
       films,
       vehicles,
       starships,
-    } = this.state;
+      error,
+    } = this.props;
 
     if (name) {
-      if (!films && filmsArr.length > 0) this.renderArrProps(filmsArr, 'films');
-      if (!vehicles && vehiclesArr.length > 0) this.renderArrProps(vehiclesArr, 'vehicles');
-      if (!starships && starshipsArr.length > 0) this.renderArrProps(starshipsArr, 'starships');
-
       return (
         <div className="character-details">
           <div className="col-xs-12">
@@ -124,7 +77,7 @@ class Swapi extends React.Component {
       );
     }
     return (
-      <div>
+      <div className="character-details">
         <p className="character-details__error">{ error }</p>
       </div>
     );

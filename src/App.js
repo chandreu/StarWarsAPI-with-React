@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import Titles from './components/Titles';
 import Form from './components/Form';
 import Swapi from './components/Swapi';
@@ -14,67 +15,120 @@ class App extends React.Component {
     birthYear: '',
     gender: '',
     homeworld: '',
-    filmsArr: [],
+    films: '',
     species: '',
-    vehiclesArr: [],
-    starshipsArr: [],
+    vehicles: '',
+    starships: '',
     error: '',
   }
 
-  getSwapi = async (e) => {
+  apiCall = (event) => {
+    event.preventDefault();
+    const query = event.target.elements.query.value;
+
     this.setState({
-      filmsArr: [],
-      vehiclesArr: [],
-      starshipsArr: [],
+      name: '',
+      height: '',
+      weight: '',
+      hairColor: '',
+      skinColor: '',
+      eyeColor: '',
+      birthYear: '',
+      gender: '',
+      homeworld: '',
+      films: '',
+      species: '',
+      vehicles: '',
+      starships: '',
+      error: '',
     });
 
-    e.preventDefault();
-    const query = e.target.elements.query.value;
+    axios.get(`https://swapi.co/api/people/?search=${query}`)
+      .then((data) => {
+        return { person: data.data.results[0] };
+      })
+      .then((data) => {
+        if (data.person) {
+          this.setState({
+            name: data.person.name,
+            height: data.person.height,
+            weight: data.person.mass,
+            hairColor: data.person.hair_color,
+            skinColor: data.person.skin_color,
+            eyeColor: data.person.eye_color,
+            birthYear: data.person.birth_year,
+            gender: data.person.gender,
+            error: '',
+          });
+        } else {
+          this.setState({
+            name: '',
+            height: '',
+            weight: '',
+            hairColor: '',
+            skinColor: '',
+            eyeColor: '',
+            birthYear: '',
+            gender: '',
+            homeworld: '',
+            films: '',
+            species: '',
+            vehicles: '',
+            starships: '',
+            error: 'No such character found',
+          });
+        }
+        return {
+          homeworld: data.person.homeworld,
+          species: data.person.species[0],
+          filmsArr: data.person.films,
+          vehiclesArr: data.person.vehicles,
+          starshipsArr: data.person.starships,
+        };
+      })
+      .then((data) => {
+        function getHomeworld() { return axios.get(data.homeworld); }
+        function getSpecies() { return axios.get(data.species); }
+        function getFilms() { return axios.all(data.filmsArr.map(l => axios.get(l))); }
+        function getVehicles() { return axios.all(data.vehiclesArr.map(l => axios.get(l))); }
+        function getStarships() { return axios.all(data.starshipsArr.map(l => axios.get(l))); }
 
-    const apiCall = await fetch(`https://swapi.co/api/people/?search=${query}`);
-    const data = await apiCall.json();
+        axios.all([getSpecies(), getHomeworld(), getFilms(), getVehicles(), getStarships()])
+          .then(axios.spread((species, homeworld, films, vehicles, starships) => {
+            function dataIterator(array) {
+              let list = '';
+              for (let i = 0; i < array.length; i += 1) {
+                list += `${array[i].data.title || array[i].data.name}`;
+                if (i < array.length - 1) list += ', ';
+              }
+              return list;
+            }
 
-    const speciesCall = await fetch(data.results[0].species);
-    const speciesData = await speciesCall.json();
+            const filmsList = dataIterator(films);
+            const vehiclesList = dataIterator(vehicles);
+            const starshipsList = dataIterator(starships);
 
-    const homeworldCall = await fetch(data.results[0].homeworld);
-    const homeworldData = await homeworldCall.json();
-
-    if (data.count > 0) {
-      this.setState({
-        name: data.results[0].name,
-        height: data.results[0].height,
-        weight: data.results[0].mass,
-        hairColor: data.results[0].hair_color,
-        skinColor: data.results[0].skin_color,
-        eyeColor: data.results[0].eye_color,
-        birthYear: data.results[0].birth_year,
-        gender: data.results[0].gender,
-        homeworld: homeworldData.name,
-        filmsArr: data.results[0].films,
-        species: speciesData.name,
-        vehiclesArr: data.results[0].vehicles,
-        starshipsArr: data.results[0].starships,
-        error: '',
+            return {
+              homeworld: homeworld.data.name,
+              species: species.data.name,
+              films: filmsList,
+              vehicles: vehiclesList,
+              starships: starshipsList,
+            };
+          }))
+          .then((arrayedData) => {
+            this.setState({
+              homeworld: arrayedData.homeworld,
+              species: arrayedData.species,
+              films: arrayedData.films,
+              vehicles: arrayedData.vehicles,
+              starships: arrayedData.starships,
+            });
+          });
+      })
+      .catch((err) => {
+        console.log(`ERROR: ${err}`);
       });
-    } else {
-      this.setState({
-        name: '',
-        height: '',
-        weight: '',
-        hairColor: '',
-        skinColor: '',
-        eyeColor: '',
-        birthYear: '',
-        gender: '',
-        homeworld: '',
-        filmsArr: [],
-        species: '',
-        vehiclesArr: [],
-        starshipsArr: [],
-        error: 'No such character found',
-      });
-    }
   }
 
   render() {
@@ -88,10 +142,10 @@ class App extends React.Component {
       skinColor,
       gender,
       homeworld,
-      filmsArr,
+      films,
       species,
-      vehiclesArr,
-      starshipsArr,
+      vehicles,
+      starships,
       error,
     } = this.state;
 
@@ -105,7 +159,7 @@ class App extends React.Component {
                   <Titles />
                 </div>
                 <div className="col-xs-7 form-container">
-                  <Form getSwapi={this.getSwapi} />
+                  <Form apiCall={this.apiCall} />
                   <Swapi
                     name={name}
                     height={height}
@@ -116,10 +170,10 @@ class App extends React.Component {
                     birthYear={birthYear}
                     gender={gender}
                     homeworld={homeworld}
-                    filmsArr={filmsArr}
+                    films={films}
                     species={species}
-                    vehiclesArr={vehiclesArr}
-                    starshipsArr={starshipsArr}
+                    vehicles={vehicles}
+                    starships={starships}
                     error={error}
                   />
                 </div>
